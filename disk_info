@@ -1,0 +1,4 @@
+df /Volumes/KOTH
+
+Filesystem 512-blocks Used Available Capacity iused ifree %iused  Mounted on
+/dev/disk4       2847    5      2842     1%     224     0  100%   /Volumes/KOTH
