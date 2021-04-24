@@ -9,14 +9,18 @@ function cleanup () {
 
 trap cleanup SIGINT SIGTERM
 
+function index() {
+  tr -s ' ' | cut -d ' ' -f $1
+}
+
 function total_volume_count() {
-  ls /Volumes | wc | tr -s ' ' | cut -d ' ' -f 2
+  ls /Volumes | wc | index 2
 }
 
 function floppy_volume_count() {
   count=0
   for volume in `ls /Volumes` ; do
-    blocks=$(df "/Volumes/$volume" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+    blocks=$(df "/Volumes/$volume" | tail -n 1 | index 2)
     if [[ $blocks = 2847 ]] ; then
       count=$(($count + 1))
     fi
@@ -25,13 +29,13 @@ function floppy_volume_count() {
 }
 
 function kill_vlc() {
-  vlc_pid=$(ps -ef | grep VLC | grep -v grep | tr -s ' ' | cut -d ' ' -f 3)
+  vlc_pid=$(ps -ef | grep VLC | grep -v grep | index 3)
   [[ ! -z $vlc_pid ]] && kill $vlc_pid
 }
 
 function play_floppy() {
   for volume in `ls /Volumes` ; do
-    blocks=$(df "/Volumes/$volume" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+    blocks=$(df "/Volumes/$volume" | tail -n 1 | index 2)
     if [[ $blocks = 2847 ]] ; then
       for line in `cat "/Volumes/$volume/index.txt"` ; do
         open -a /Applications/VLC.app "$line"
@@ -42,7 +46,7 @@ function play_floppy() {
 }
 
 function is_floppy() {
-  blocks=$(df "/Volumes/$1" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2)
+  blocks=$(df "/Volumes/$1" | tail -n 1 | index 2)
   if [[ $blocks = 2847 ]] ; then
     return 0
   else
