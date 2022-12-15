@@ -1,6 +1,16 @@
-#!/bin/bash
+#}!/bin/bash
 SAVEIFS=$IFS
 IFS=$'\n'
+
+# an exact size we expect floppies to be.
+FLOPPY_BLOCKS_SIZE=1424
+
+# a looser definition of how large we expect floppies to be.
+# anything smaller than this size will be considered a floppy.
+# this accounts for a strange thing where floppies appeared as a size of 2847
+MAX_FLOPPY_BLOCKS_SIZE=10000
+
+set found_floppy_volume
 
 function cleanup () {
   IFS=$SAVEIFS
@@ -13,19 +23,17 @@ function index() {
   tr -s ' ' | cut -d ' ' -f $1
 }
 
-function total_volume_count() {
-  ls /Volumes | wc | index 2
-}
-
-function floppy_volume_count() {
-  count=0
+function find_floppy_volume() {
   for volume in `ls /Volumes` ; do
+    # there is a bug here where it miscounts what column to read the
+    # block size at if the volume name is more than one word.
     blocks=$(df "/Volumes/$volume" | tail -n 1 | index 2)
-    if [[ $blocks = 2847 ]] ; then
-      count=$(($count + 1))
+    if [[ $blocks = $FLOPPY_BLOCKS_SIZE ]] ; then
+      found_floppy_volume=$volume
+      return
     fi
   done
-  echo $count
+  unset found_floppy_volume
 }
 
 function kill_vlc() {
@@ -34,20 +42,15 @@ function kill_vlc() {
 }
 
 function play_floppy() {
-  for volume in `ls /Volumes` ; do
-    blocks=$(df "/Volumes/$volume" | tail -n 1 | index 2)
-    if [[ $blocks = 2847 ]] ; then
-      for line in `cat "/Volumes/$volume/index.txt"` ; do
-        open -a /Applications/VLC.app "$line"
-      done
-      break
-    fi
-  done
+  index_file="/Volumes/$found_floppy_volume/index.txt"
+  random_video=`shuf -n 1 $index_file`
+  echo "random video name: $random_video"
+  open -a /Applications/VLC.app "$random_video" --args -f
 }
 
 function is_floppy() {
   blocks=$(df "/Volumes/$1" | tail -n 1 | index 2)
-  if [[ $blocks = 2847 ]] ; then
+  if [[ $blocks = $FLOPPY_BLOCKS_SIZE ]] ; then
     return 0
   else
     return 1
@@ -69,15 +72,16 @@ echo "waiting for floppy..."
 
 is_playing=false
 while true ; do
-  floppies=$(floppy_volume_count)
+  find_floppy_volume
   if [[ $is_playing = true ]] ; then
-    if [[ $floppies = 0 ]]; then
+    if [ -z "$found_floppy_volume" ]; then
       echo "floppy ejected"
+      unset found_floppy_volume
       is_playing=false
       kill_vlc
     fi
   else
-    if [[ $floppies = 1 ]]; then
+    if [ ! -z "$found_floppy_volume" ]; then
       echo "floppy inserted"
       is_playing=true
       play_floppy
