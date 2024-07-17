@@ -28,7 +28,7 @@ function find_floppy_volume() {
     # there is a bug here where it miscounts what column to read the
     # block size at if the volume name is more than one word.
     blocks=$(df "/Volumes/$volume" | tail -n 1 | index 2)
-    if [[ $blocks = $FLOPPY_BLOCKS_SIZE ]] ; then
+    if [[ $blocks -lt $MAX_FLOPPY_BLOCKS_SIZE ]] ; then
       found_floppy_volume=$volume
       return
     fi
