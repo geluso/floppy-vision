@@ -12,4 +12,4 @@
                                                                                  
 ```
 
-Watch the <a href="./demo.mp4">demo video</a>.
+Watch the <a href="https://github.com/geluso/floppy-vision/raw/refs/heads/main/demo.mp4">demo video</a>.
