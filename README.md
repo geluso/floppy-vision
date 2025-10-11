@@ -12,7 +12,4 @@
                                                                                  
 ```
 
-<video controls>
-  <source src="./demo.mp4" type="video/mp4" />
-  Download the <a href="./demo.mp4">MP4</a> video.
-</video>
+Watch the <a href="./demo.mp4">demo video</a>.
